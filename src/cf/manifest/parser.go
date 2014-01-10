@@ -3,23 +3,20 @@ package manifest
 import (
 	"generic"
 	"io"
-	"io/ioutil"
-	"launchpad.net/goyaml"
+	"fmt"
+	"github.com/kylelemons/go-gypsy/yaml"
 )
 
 func Parse(reader io.Reader) (manifest *Manifest, errs ManifestErrors) {
-	yamlBytes, err := ioutil.ReadAll(reader)
-	if err != nil {
-		errs = append(errs, err)
-		return
-	}
-
 	yamlMap := generic.NewMap()
-	err = goyaml.Unmarshal(yamlBytes, yamlMap)
+
+	// gypsy
+	node, err := yaml.Parse(reader)
 	if err != nil {
 		errs = append(errs, err)
 		return
 	}
+	fmt.Printf("\n\n%#v\n", node)
 
 	manifest, errs = NewManifest(yamlMap)
 	return
