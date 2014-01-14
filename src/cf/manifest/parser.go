@@ -2,9 +2,9 @@ package manifest
 
 import (
 	"generic"
+	"github.com/cloudfoundry/gamble"
 	"io"
 	"io/ioutil"
-	"launchpad.net/goyaml"
 )
 
 func Parse(reader io.Reader) (manifest *Manifest, errs ManifestErrors) {
@@ -14,13 +14,13 @@ func Parse(reader io.Reader) (manifest *Manifest, errs ManifestErrors) {
 		return
 	}
 
-	yamlMap := generic.NewMap()
-	err = goyaml.Unmarshal(yamlBytes, yamlMap)
+	document, err := gamble.Parse(string(yamlBytes))
 	if err != nil {
 		errs = append(errs, err)
 		return
 	}
 
+	yamlMap := generic.NewMap(document)
 	manifest, errs = NewManifest(yamlMap)
 	return
 }

@@ -3,7 +3,9 @@ package manifest
 import (
 	"cf"
 	"errors"
+	"fmt"
 	"generic"
+	"strconv"
 )
 
 type manifestComponents struct {
@@ -25,6 +27,17 @@ func newManifestComponents(data generic.Map) (m manifestComponents, errs Manifes
 				errs = append(errs, appErrs...)
 			}
 
+			for _, fieldName := range []string{"instances"} {
+				if app.Has(fieldName) && app.Get(fieldName) != nil {
+					value, err := strconv.Atoi(app.Get(fieldName).(string))
+					if err != nil {
+						errs = append(errs, errors.New(fmt.Sprintf("Expected %s to be a number.", fieldName)))
+					} else {
+						app.Set(fieldName, value)
+					}
+				}
+			}
+
 			if app.Has("services") {
 				appServices, err := servicesComponent(app.Get("services"))
 				if err != nil {
@@ -37,7 +50,7 @@ func newManifestComponents(data generic.Map) (m manifestComponents, errs Manifes
 			}
 
 			if app.Has("env") {
-				env, ok := app.Get("env").(map[interface{}]interface{})
+				env, ok := app.Get("env").(map[string]interface{})
 				if !ok {
 					errs = append(errs, errors.New("Expected local env vars to be a set of key => value."))
 				} else {
@@ -50,7 +63,7 @@ func newManifestComponents(data generic.Map) (m manifestComponents, errs Manifes
 	}
 
 	if data.Has("env") {
-		env, ok := data.Get("env").(map[interface{}]interface{})
+		env, ok := data.Get("env").(map[string]interface{})
 		if ok {
 			m.GlobalEnvVars = generic.NewMap(env)
 		} else {
